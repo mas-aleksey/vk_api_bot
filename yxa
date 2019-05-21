@@ -1,0 +1,59 @@
+import requests
+import random
+import sys
+import time
+
+url = 'https://api.vk.com/method/wall.get'
+
+
+def get():
+    file = open('уха.txt').read()
+    collect = file.split('\n#\n')
+    num = random.randint(0, (len(collect) - 1))
+    return collect[num]
+
+
+def getjson(url, data):
+    response = requests.get(url, params=data)
+    response = response.json()
+    return response
+
+
+def getData(offset):
+    return {'domain': 'yxa.xaxa',
+            'count': '100',
+            'offset': offset,
+            'access_token': 'a02467a50d74ba0c5bdb65a329c16e06dabead5ef0373cdf19bbaa5a80d391a9b2ecf0f91317be2714e98',
+            'v': '5.68'}
+
+
+
+
+
+def getTotalCount():
+    response = getjson(url, getData(1))
+    return response['response']['count'] - 1
+
+
+def getRndYxa():
+    totalcount = getTotalCount()
+    offset = 0
+    f = open("yxa.txt", "w+")
+    count = 0
+    while totalcount > offset:
+        time.sleep(1)
+        try:
+            data = getData(offset)
+            response = getjson(url, data)
+            lis = response['response']['items']
+            for item in lis:
+                f.write(item['text'] + "\n#\n")
+                count += 1
+            offset += 100
+            print(offset)
+        except Exception:
+            print("Unexpected error:", sys.exc_info()[0])
+    print(count)
+    # return response['response']['items'][0]['text']
+
+getRndYxa()

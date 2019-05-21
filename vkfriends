@@ -1,0 +1,45 @@
+import requests
+import sqlite3
+
+url = 'https://api.vk.com/method/friends.get'
+
+
+def getjson(url: object, data: object) -> object:
+    resp = requests.get(url, params=data)
+    resp = resp.json()
+    return resp
+
+
+def friendData():
+    return {'fields': 'nickname, domain, sex, bdate, city, country, timezone, photo_200_orig, has_mobile, contacts, education, online, relation, status, universities',
+             'access_token': '41a218601044fe0bfcb026da2781ac0e6058e45f15f79af8f6722ad39649e31c60f07462ed3c7de8b3761'}
+
+
+def get_field(data, field):
+    try:
+        result = data[field]
+    except:
+        result = '-'
+    return result
+
+
+data = friendData()
+response = getjson(url, data)
+inserts = []
+for friend in response['response']:
+    first_name = get_field(friend, 'first_name')
+    last_name = get_field(friend, 'last_name')
+    vk_domain = get_field(friend, 'domain')
+    birthday = get_field(friend, 'bdate')
+    mobile_phone = get_field(friend, 'mobile_phone')
+    home_phone = get_field(friend, 'home_phone')
+    university_name = get_field(friend, 'university_name')
+    photo = get_field(friend, 'photo_200_orig')
+    inserts.append([last_name, first_name, vk_domain, birthday, mobile_phone, home_phone, university_name, photo])
+
+conn = sqlite3.connect('people.db')
+c = conn.cursor()
+for person in inserts:
+    c.execute('insert into People (last_name, first_name, vk_domain, birthday, mobile_phone, home_phone, university_name, photo) values (?,?,?,?,?,?,?,?)', person)
+conn.commit()
+conn.close()
